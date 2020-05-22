@@ -1,0 +1,7 @@
+archive
+.vscode
+deploy.sh
+run.sh
+*.log
+node_modules
+index.html
