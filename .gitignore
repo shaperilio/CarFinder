@@ -5,3 +5,5 @@ run.sh
 *.log
 node_modules
 index.html
+jeep.json
+subaru.json
