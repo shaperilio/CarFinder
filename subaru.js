@@ -96,37 +96,16 @@ async function run() {
         return 0;
     });
 
-    let html = `
-        <body>
-        <table cellpadding="5px" border="1px">
-        <tr>
-          <th>Photo</th>
-          <th>MSRP</th>
-          <th>Final price</th>
-          <th>Location</th>
-        </tr>`;
-
-    for (const car of allCars) {
-        const googleMapsLink = `https://www.google.com/maps/place/${car.dealerAddress.replace(/\s/g, '+')}`;
-        html += `<tr>
-        <td><img src="${car.imgUrl}" width="120px"></td>
-        <td>${car.msrp}</td>
-        <td><a href="${car.url}" target="_blank">${car.finalPrice}</a></td>
-        <td><a href="${googleMapsLink}" target="_blank">${car.dealerName} - ${car.dealerCityState}</a></td>
-        </tr>`
-        console.log(`${car.finalPrice} - ${car.name} (${car.url}).`);
-    }
-
-    html += `</table></body>`;
-    html += `<p>Updated ${moment().format('YYYY-MM-DD HH:mm:ss')}</p>`;
-    fs.writeFileSync('index.html', html, err => {
-        console.error(err);
-    });
-
     const archive = `archive/subaru_${moment().format('YYYY-MM-DD_HH-mm-ss')}.json`;
     fs.writeFileSync(archive, JSON.stringify(allCars, null, 2), err => {
         console.error(err);
     });
+    
+    fs.writeFileSync('subaru.json', JSON.stringify(allCars, null, 2), err => {
+        console.error(err);
+    });
+
+    return allCars;
 }
 
-run();
+module.exports = {run};
