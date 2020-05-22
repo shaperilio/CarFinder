@@ -7,14 +7,8 @@ function parseResults(body, dealer) {
     const cars = [];
     const content = cheerio.load(body);
     const dealerName = content('.org').text().trim();
-    const dealerAddress = `\
-    ${content('.street-address').text().trim()}, \
-    ${content('.locality').text().trim()}, \
-    ${content('.region').text().trim()}, \
-    ${content('.postal-code').text().trim()}`;
-    const dealerCityState = `\
-    ${content('.locality').text().trim()}, \
-    ${content('.region').text().trim()}`;
+    const dealerAddress = `${content('.street-address').text().trim()}, ${content('.locality').text().trim()}, ${content('.region').text().trim()}, ${content('.postal-code').text().trim()}`;
+    const dealerCityState = `${content('.locality').text().trim()}, ${content('.region').text().trim()}`;
     const numCars = content('.vehicle-count').last().text();
     if (!numCars || numCars === '0') return cars;
     content('.hproduct', '.bd').each(
@@ -116,7 +110,7 @@ async function run() {
         </tr>`;
 
     for (const car of allCars) {
-        const googleMapsLink = `https://www.google.com/maps/place/${car.dealerAddress.replace(' ', '+')}`;
+        const googleMapsLink = `https://www.google.com/maps/place/${car.dealerAddress.replace(/\s/g, '+')}`;
         html += `<tr>
         <td><img src="${car.imgUrl}" width="120px"></td>
         <td>${car.msrp}</td>
