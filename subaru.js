@@ -91,11 +91,8 @@ async function run() {
     }
 
     allCars.sort(function (a, b) {
-        const keyA = a.finalPrice;
-        const keyB = b.finalPrice;
-        // Compare the 2 dates
-        if (keyA < keyB) return -1;
-        if (keyA > keyB) return 1;
+        if (a.finalPrice < b.finalPrice) return -1;
+        if (a.finalPrice > b.finalPrice) return 1;
         return 0;
     });
 
