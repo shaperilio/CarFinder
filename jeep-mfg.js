@@ -26,7 +26,7 @@ function makeImageUrl(urlParams, width, interior=false) {
     return `${imageUrl}${urlParams}${renderSettings}`;
 }
 
-async function getDealers(zipCode) {
+async function getDealers(zipCode, radiusMiles) {
     const url = 'https://www.jeep.com/bdlws/MDLSDealerLocator?zipCode=ZIPCODE&func=SALES&radius=RADIUSMILES&brandCode=J&resultsPerPage=999'
     const requestUrl = url
         .replace('ZIPCODE', zipCode)
@@ -46,7 +46,8 @@ async function getDealers(zipCode) {
             code: dealer.dealerCode,
             name: dealer.dealerName,
             address: `${dealerAddress}, ${dealer.dealerCity}, ${dealer.dealerState}`,
-            cityState: `${dealer.dealerCity}, ${dealer.dealerState}`
+            cityState: `${dealer.dealerCity}, ${dealer.dealerState}`,
+            website: dealer.website + '/'
         })
     }
 
@@ -171,7 +172,7 @@ async function run() {
 
     let promises = [];
     for (const zipCode of zipCodes) {
-        promises.push(getDealers(zipCode));
+        promises.push(getDealers(zipCode, radiusMiles));
     }
 
     const dealersByZip = await Promise.all(promises);
@@ -221,4 +222,4 @@ async function run() {
     return allCars;
 }
 
-module.exports = {run};
+module.exports = {run, getDealers};

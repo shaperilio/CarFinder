@@ -1,10 +1,9 @@
 const subaru = require('./subaru.js');
-const jeep   = require('./jeep-mfg.js');
+const jeep   = require('./jeep.js');
 const fs     = require('fs');
 const moment = require('moment');
 
-async function makeSubaruTable() {
-    const allCars = await subaru.run();
+function makeDealerTable(allCars) {
     let html = `
     <table cellpadding="5px" border="1px">
     <tr>
@@ -20,7 +19,9 @@ async function makeSubaruTable() {
     <td><img src="${car.imgUrl}" height="120px"></td>
     <td>${car.msrp}</td>
     <td><a href="${car.url}" target="_blank">${car.finalPrice}</a></td>
-    <td><a href="${googleMapsLink}" target="_blank">${car.dealerName} - ${car.dealerCityState}</a></td>
+    <td><a href="${googleMapsLink}" target="_blank">${car.dealerName} - ${car.dealerCityState}</a><br />
+        <a href="${car.windowSticker}" target="_blank">${car.vin}</a><br />
+        ${car.engine}</td>
     </tr>`
         console.log(`${car.finalPrice} - ${car.name} (${car.url}).`);
     }
@@ -30,7 +31,7 @@ async function makeSubaruTable() {
     return html;
 }
 
-async function makeJeepTable() {
+async function makeJeepMfgTable() {
     const allCars = await jeep.run();
     let html = `
     <table cellpadding="5px" border="1px">
@@ -67,12 +68,15 @@ async function makePage() {
     <p>Updated ${moment().format('YYYY-MM-DD HH:mm:ss')}</p>
     <table><tr><td valign="top">`;
     
-    html += await makeSubaruTable();
+    let cars = await subaru.run();
+    html += makeDealerTable(cars);
 
     html += `</td>
     <td valign="top">`;
     
-    html += await makeJeepTable();
+    cars = await jeep.run();
+    html += makeDealerTable(cars);
+    // html += await makeJeepMfgTable();
     
     html += `
     </td></tr></table>
