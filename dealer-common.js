@@ -16,16 +16,7 @@ function parseResults(body, dealer, make, pageUrl) {
 
     let dealerName = content('.org').text().trim();
     if (!dealerName) {
-        dealerName = 'noname';
-    }
-    if (!dealerName) {
-        dealerName = 'noname';
-    }
-    if (!dealerName) {
-        dealerName = 'noname';
-    }
-    if (!dealerName) {
-        dealerName = 'noname';
+        dealerName = 'Unkown dealer name';
     }
     const dealerAddress = `${content('.street-address').text().trim()}, ${content('.locality').text().trim()}, ${content('.region').text().trim()}, ${content('.postal-code').text().trim()}`;
     const dealerCityState = `${content('.locality').text().trim()}, ${content('.region').text().trim()}`;
@@ -46,17 +37,11 @@ function parseResults(body, dealer, make, pageUrl) {
                 msrp = content('.value', content('.salePrice', pricing)).text();
             }
             if (!msrp) {
-                msrp = '0'
+                msrp = '0'; // put bad ones at the top.
             }
             let finalPrice = content('li', pricing).find('.final-price').find('.value').text();
             if (!finalPrice) {
                 finalPrice = content('.an-final-price .price', pricing).text();
-            }
-            if (!finalPrice) {
-                finalPrice = '0';
-            }
-            if (!finalPrice) {
-                finalPrice = '0';
             }
             if (!finalPrice) {
                 finalPrice = '0';
