@@ -6,7 +6,7 @@ This simple script will allow you to add dealerships, get results for a specific
 
 Note that, quite often, the "final price" is just the MSRP if the delerships choose not to expose their discounts to the public.
 
-## Usage (Subaru)
+## Usage 
 
 Create the archive subfolder:
 ```
@@ -14,7 +14,14 @@ mkdir archive
 ```
 You can make yourself a shell script containing this and then add it to a cron job if you'd like.
 ```
-node subaru.js > lastrun.log 2>&1
+node main.js > lastrun.log 2>&1
 ```
 
+### Subaru
+
 If you don't want to look for Outback Onyx editions, simply perform the search at any dealership, look at the URL query string, and put that into [subaru.js](subaru.js#L58).
+
+### Jeep
+
+It's... more complicated.
+
