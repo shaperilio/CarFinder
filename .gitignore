@@ -6,5 +6,7 @@ run.sh
 node_modules
 index.html
 jeep.json
+jeep-mfg.json
 subaru.json
 page.html
+cache
