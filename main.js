@@ -1,7 +1,8 @@
-const subaru = require('./subaru.js');
-const jeep   = require('./jeep.js');
-const fs     = require('fs');
-const moment = require('moment');
+const subaru  = require('./subaru.js');
+const jeep    = require('./jeep.js');
+const jeepMfg = require('./jeep-mfg.js');
+const fs      = require('fs');
+const moment  = require('moment');
 
 function makeDealerTable(allCars) {
     let html = `
@@ -68,15 +69,15 @@ async function makePage() {
     <p>Updated ${moment().format('YYYY-MM-DD HH:mm:ss')}</p>
     <table><tr><td valign="top">`;
     
-    let cars = await subaru.getCarsFromDealers();
+    let cars;
+    cars = await subaru.getCarsFromDealers();
     html += makeDealerTable(cars);
 
     html += `</td>
     <td valign="top">`;
     
-    cars = await jeep.getCarsFromDealers();
+    cars = await jeepMfg.getCarsFromDealers();
     html += makeDealerTable(cars);
-    // html += await makeJeepMfgTable();
     
     html += `
     </td></tr></table>

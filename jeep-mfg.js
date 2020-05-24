@@ -1,9 +1,8 @@
-const fetch = require('node-fetch');
+const fetcher = require('./fetch-with-cache.js');
 const moment = require('moment');
 const fs = require('fs');
-
-const radiusMiles = 150;
-
+const { fetchFromDealer } = require('./dealer-common.js');
+ 
 function formatCurrency(numberString) {
     let result = ''
     for (let i = numberString.length - 1; i > -1; i--) {
@@ -31,8 +30,7 @@ async function getDealers(zipCode, radiusMiles) {
     const requestUrl = url
         .replace('ZIPCODE', zipCode)
         .replace('RADIUSMILES', radiusMiles);
-    const response = await fetch(requestUrl);
-    const data = await response.json();
+    const data = await fetcher.getJson(requestUrl);
     const result = data.status;
     if (!result === 200) {
         console.error(`Could not get dealer list for ${zipCode}: ${result}`);
@@ -88,7 +86,7 @@ function isCarValid(car, filters) {
     return true;
 }
 
-async function getCars(filters, zipCode, dealers) {
+async function getCars(filters, zipCode, dealers, radiusMiles) {
     const url = 'https://www.jeep.com/hostd/inventory/getinventoryresults.json?func=SALES&includeIncentives=Y&matchType=X&modelYearCode=IUJ202010&pageNumber=PAGENUMBER&pageSize=PAGESIZE&radius=RADIUSMILES&sortBy=0&zip=ZIPCODE'
     const pageSize = 10000;
     const requestUrl = url
@@ -97,8 +95,7 @@ async function getCars(filters, zipCode, dealers) {
         .replace('RADIUSMILES', radiusMiles)
         .replace('PAGESIZE', pageSize);
     // console.log(requestUrl);
-    const response = await fetch(requestUrl);
-    const data = await response.json();
+    const data = await fetcher.getJson(requestUrl);
     const result = data.result.result
     if (!result === "SUCCESS") {
         console.error(`${result}: ${data.result.errors.join(', ')}`);
@@ -164,22 +161,17 @@ async function getCars(filters, zipCode, dealers) {
     return filteredCars;
 }
 
-async function run() {
+async function getCarsFromFactory() {
     const zipCodes = [
         77478,
         94610
     ]
 
-    let promises = [];
-    for (const zipCode of zipCodes) {
-        promises.push(getDealers(zipCode, radiusMiles));
-    }
+    const radiusMiles = 150;
 
-    const dealersByZip = await Promise.all(promises);
     const allDealers = [];
-    for (const dealers of dealersByZip) {
-        allDealers.push(...dealers);
-    }
+    const dealersByZip = await Promise.all(zipCodes.map(zipCode => getDealers(zipCode, radiusMiles)));
+    dealersByZip.map(dealers => allDealers.push(...dealers));
 
     const filter = {
         transmissionCodes: ['DFT'],
@@ -193,16 +185,9 @@ async function run() {
         exteriorColorCodes: ['PRC', 'PDN', 'PBM', 'PYV', 'PGG']
     }
 
-    promises = [];
-    for (const zipCode of zipCodes) {
-        promises.push(getCars(filter, zipCode, allDealers));
-    }
-
-    const carsByZip = await Promise.all(promises);
     const allCars = [];
-    for (const cars of carsByZip) {
-        allCars.push(...cars);
-    }
+    const carsByZip = await Promise.all(zipCodes.map(zipCode => getCars(filter, zipCode, allDealers, radiusMiles)));
+    carsByZip.map(cars => allCars.push(...cars));
 
     allCars.sort(function (a, b) {
         if (a.finalPrice < b.finalPrice) return -1;
@@ -222,4 +207,38 @@ async function run() {
     return allCars;
 }
 
-module.exports = {run, getDealers};
+async function getCarsFromDealers() {
+    // Get cars by filtering the factory inventory search, then looking for them in the dealerships'
+    // website and matching by VIN.
+
+    const dealerCars = [];
+    const factoryCars = await getCarsFromFactory();
+
+    const dealerUrls = [... new Set(factoryCars.map(a => a.dealer.website))];
+    console.log(`Factory query resulted in ${factoryCars.length} cars from ${dealerUrls.length} dealers.`);
+
+    const query = 'new-inventory/index.htm?search=&model=Wrangler';
+
+    const carsByDealer = await Promise.all(dealerUrls.map(url => fetchFromDealer(url, 'jeep', query)));
+    const allCars = [];
+    carsByDealer.map(cars => allCars.push(...cars));
+
+    for (const factoryCar of factoryCars) {
+        let found = false;
+        const dealerUrl = factoryCar.dealer.website;
+        for (const car of allCars) {
+            if (car.vin.trim() === factoryCar.vin.trim()) {
+                dealerCars.push(car);
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            console.error(`Could not find car ${factoryCar.vin} at ${dealerUrl}${query}`)
+        }
+    }
+
+    return dealerCars;
+}
+
+module.exports = {getCarsFromDealers, getDealers};
