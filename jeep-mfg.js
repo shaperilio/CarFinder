@@ -210,12 +210,12 @@ async function run() {
         return 0;
     });
 
-    const archive = `archive/jeep_${moment().format('YYYY-MM-DD_HH-mm-ss')}.json`;
+    const archive = `archive/jeep-mfg_${moment().format('YYYY-MM-DD_HH-mm-ss')}.json`;
     fs.writeFileSync(archive, JSON.stringify(allCars, null, 2), err => {
         console.error(err);
     });
 
-    fs.writeFileSync('jeep.json', JSON.stringify(allCars, null, 2), err => {
+    fs.writeFileSync('jeep-mfg.json', JSON.stringify(allCars, null, 2), err => {
         console.error(err);
     });
 

@@ -1,18 +1,32 @@
+const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
 const windowStickerUrl =  'https://window-sticker-services.pse.dealer.com/windowsticker/MAKE?vin=VIN'
 
+async function fetchFromDealer(dealerUrl, make, query) {
+    const url = `${dealerUrl}${query}`;
+    const response = await fetch(url);
+    const body = await response.text();
+    let result = parseResults(body, dealerUrl, make, url);
+    const cars = result.cars;
+    console.log(`${cars.length} car(s) found at ${url}`);
+    while (result.reportedCars > cars.length) {
+        const response = await fetch(url.replace('search=', `start=${cars.length}`));
+        const body = await response.text();
+        result = parseResults(body, dealerUrl, make, url);
+        cars.push(...result.cars);
+    }
+    return cars;
+}
+
 function parseResults(body, dealer, make, pageUrl) {
-    console.log(pageUrl);
     const cars = [];
     const content = cheerio.load(body);
     fs.writeFileSync('page.html', body)
     const numCars = content('.vehicle-count').last().text();
-    const apparentNumCars = content('.hproduct', '.bd').length;
-    console.log(`numCars = ${numCars}; apparentNumCars = ${apparentNumCars}`);
-    if (!numCars || numCars === '0' || apparentNumCars === 0) 
-        return cars;
+    const carList = content('.hproduct', '.bd');
+    console.log(`numCars = ${numCars}; carList.length = ${carList.length} at ${pageUrl}`);
 
     let dealerName = content('.org').text().trim();
     if (!dealerName) {
@@ -20,7 +34,7 @@ function parseResults(body, dealer, make, pageUrl) {
     }
     const dealerAddress = `${content('.street-address').text().trim()}, ${content('.locality').text().trim()}, ${content('.region').text().trim()}, ${content('.postal-code').text().trim()}`;
     const dealerCityState = `${content('.locality').text().trim()}, ${content('.region').text().trim()}`;
-    content('.hproduct', '.bd').each(
+    carList.each(
         (i, car) => {
             const name = content('.url', car).text().trim();
             const url = `${dealer}${content('.url', car).attr('href')}`;
@@ -50,6 +64,7 @@ function parseResults(body, dealer, make, pageUrl) {
             let vin = content('.vin dd', car).text();
             const engine = content('.description dt:contains("Engine:")', car).next().text().replace(',', '');
             const theCar = {
+                pageUrl,
                 dealerName,
                 dealerAddress,
                 dealerCityState,
@@ -74,10 +89,13 @@ function parseResults(body, dealer, make, pageUrl) {
             cars.push(theCar);
         }
     );
-    if (cars.length !== parseInt(numCars)) {
-        console.error(`${dealerName} website reports ${numCars} but we retrieved ${cars.length}!`);
+
+    let reportedCars = 0;
+    if (!isNaN(parseInt(numCars)) && carList.length > 0) {
+        reportedCars = parseInt(numCars)
     }
-    return cars;
+
+    return { cars, reportedCars };
 }
 
-module.exports = {parseResults}
+module.exports = { fetchFromDealer }

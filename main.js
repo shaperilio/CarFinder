@@ -68,13 +68,13 @@ async function makePage() {
     <p>Updated ${moment().format('YYYY-MM-DD HH:mm:ss')}</p>
     <table><tr><td valign="top">`;
     
-    let cars = await subaru.run();
+    let cars = await subaru.getCarsFromDealers();
     html += makeDealerTable(cars);
 
     html += `</td>
     <td valign="top">`;
     
-    cars = await jeep.run();
+    cars = await jeep.getCarsFromDealers();
     html += makeDealerTable(cars);
     // html += await makeJeepMfgTable();
     

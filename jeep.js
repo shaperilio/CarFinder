@@ -1,20 +1,14 @@
-const fetch = require('node-fetch');
 const fs = require('fs');
 const moment = require('moment');
 const { getDealers } = require('./jeep-mfg.js')
-const { parseResults } = require('./dealer-common.js');
+const { fetchFromDealer } = require('./dealer-common.js');
 
-async function fetchFromDealer(dealer) {
+async function fetchCars(dealer) {
     const query = 'new-inventory/index.htm?search=&model=Wrangler&gvOption=Distance+Pacing+Cruise+Control&gvOption=Heated+Seats';
-    const url = `${dealer}${query}`;
-    const response = await fetch(url);
-    const body = await response.text();
-    const cars = parseResults(body, dealer, 'jeep', url);
-    console.log(`${cars.length} car(s) found at ${url}`);
-    return cars;
+    return await fetchFromDealer(dealer, 'jeep', query);
 }
 
-async function run() {
+async function getCarsFromDealers() {
 
     const zipCodes = [
         77478,
@@ -38,7 +32,7 @@ async function run() {
 
     promises = [];
     for (const dealer of dealers) {
-        promises.push(fetchFromDealer(dealer));
+        promises.push(fetchCars(dealer));
     }
 
     const dealerCars = await Promise.all(promises);
@@ -64,4 +58,4 @@ async function run() {
     return allCars;
 }
 
-module.exports = {run};
+module.exports = {getCarsFromDealers};

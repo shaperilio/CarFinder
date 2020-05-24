@@ -1,19 +1,13 @@
-const fetch = require('node-fetch');
 const fs = require('fs');
 const moment = require('moment');
-const { parseResults } = require('./dealer-common.js');
+const { fetchFromDealer } = require('./dealer-common.js');
 
-async function fetchFromDealer(dealer) {
+async function fetchCars(dealer) {
     const query = 'new-inventory/index.htm?search=&model=Outback&trim=Onyx+Edition+XT';
-    const url = `${dealer}${query}`;
-    const response = await fetch(url);
-    const body = await response.text();
-    const cars = parseResults(body, dealer, 'subaru', url);
-    console.log(`${cars.length} car(s) found at ${url}`);
-    return cars;
+    return await fetchFromDealer(dealer, 'subaru', query);
 }
 
-async function run() {
+async function getCarsFromDealers() {
     const dealers = [
         'https://www.fairfieldsubaru.com/',
         'https://www.diablosubaru.com/',
@@ -37,7 +31,7 @@ async function run() {
 
     const promises = [];
     for (const dealer of dealers) {
-        promises.push(fetchFromDealer(dealer));
+        promises.push(fetchCars(dealer));
     }
 
     const dealerCars = await Promise.all(promises);
@@ -63,4 +57,4 @@ async function run() {
     return allCars;
 }
 
-module.exports = {run};
+module.exports = {getCarsFromDealers};
