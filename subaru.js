@@ -27,17 +27,9 @@ async function getCarsFromDealers() {
         'https://www.superiorsubaruofhouston.com/'
     ]
 
+    const carsByDealer = await Promise.all(dealers.map(dealer => fetchCars(dealer)));
     const allCars = [];
-
-    const promises = [];
-    for (const dealer of dealers) {
-        promises.push(fetchCars(dealer));
-    }
-
-    const dealerCars = await Promise.all(promises);
-    for (const cars of dealerCars) {
-        allCars.push(...cars);
-    }
+    carsByDealer.map(cars => allCars.push(...cars));
 
     allCars.sort(function (a, b) {
         if (a.finalPrice < b.finalPrice) return -1;

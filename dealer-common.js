@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+const fetcher = require('./fetch-with-cache.js');
 const cheerio = require('cheerio');
 const fs = require('fs');
 
@@ -6,21 +6,38 @@ const windowStickerUrl =  'https://window-sticker-services.pse.dealer.com/window
 
 async function fetchFromDealer(dealerUrl, make, query) {
     const url = `${dealerUrl}${query}`;
-    const response = await fetch(url);
-    const body = await response.text();
-    let result = parseResults(body, dealerUrl, make, url);
+    const body = await fetcher.getHtml(url);
+    let result = await parseResults(body, dealerUrl, make, url);
     const cars = result.cars;
     console.log(`${cars.length} car(s) found at ${url}`);
     while (result.reportedCars > cars.length) {
-        const response = await fetch(url.replace('search=', `start=${cars.length}`));
-        const body = await response.text();
-        result = parseResults(body, dealerUrl, make, url);
+        const paginatedUrl = url.replace('search=', `start=${cars.length}`)
+        const body = await fetcher.getHtml(paginatedUrl);
+        result = await parseResults(body, dealerUrl, make, paginatedUrl);
         cars.push(...result.cars);
     }
     return cars;
 }
 
-function parseResults(body, dealer, make, pageUrl) {
+async function getVinFromCarPage(url) {
+    const body = await fetcher.getHtml(url);
+    const content = cheerio.load(body);
+    const vinLine = content('.additional-details').text();
+    const vinIdx = vinLine.indexOf("VIN:");
+    let vin;
+    if (vinIdx > -1) {
+        vin = vinLine.slice(vinIdx + 4, vinLine.length).trim();
+    }
+    if (!vin) {
+        vin = content('.value', content('.vin')).text().trim();
+    }
+    if (!vin) {
+        console.warn(`Could not get VIN from ${url}`);
+    }
+    return vin;
+}
+
+async function parseResults(body, dealer, make, pageUrl) {
     const cars = [];
     const content = cheerio.load(body);
     fs.writeFileSync('page.html', body)
@@ -34,8 +51,8 @@ function parseResults(body, dealer, make, pageUrl) {
     }
     const dealerAddress = `${content('.street-address').text().trim()}, ${content('.locality').text().trim()}, ${content('.region').text().trim()}, ${content('.postal-code').text().trim()}`;
     const dealerCityState = `${content('.locality').text().trim()}, ${content('.region').text().trim()}`;
-    carList.each(
-        (i, car) => {
+    carList.each( 
+        async (i, car) => {
             const name = content('.url', car).text().trim();
             const url = `${dealer}${content('.url', car).attr('href')}`;
             const imgUrl = content('img', content('.media', car)).attr('src');
@@ -62,6 +79,12 @@ function parseResults(body, dealer, make, pageUrl) {
             }
             const internetPrice = content('li', pricing).find('.internetPrice').find('.value').text();
             let vin = content('.vin dd', car).text();
+            if (!vin) {
+                vin = await getVinFromCarPage(url);
+                if (!vin) {
+                    console.error(`Could not get vin from search resutls at ${pageUrl} or car page at ${url}`);
+                }
+            }
             const engine = content('.description dt:contains("Engine:")', car).next().text().replace(',', '');
             const theCar = {
                 pageUrl,
