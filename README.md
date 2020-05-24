@@ -8,20 +8,26 @@ Note that, quite often, the "final price" is just the MSRP if the delerships cho
 
 ## Usage 
 
-Create the archive subfolder:
+Create the archive and cache subfolders:
+
 ```
 mkdir archive
+mkdir cache
 ```
+
 You can make yourself a shell script containing this and then add it to a cron job if you'd like.
+
 ```
 node main.js > lastrun.log 2>&1
 ```
 
+Fetching is done via a cache which expires on the hour. Be sure to clear the `cache` folder every so often.
+
 ### Subaru
 
-If you don't want to look for Outback Onyx editions, simply perform the search at any dealership, look at the URL query string, and put that into [subaru.js](subaru.js#L58).
+If you don't want to look for Outback Onyx editions, simply perform the search at any dealership, look at the URL query string, and put that into `fetchCars` in [subaru.js](subaru.js).
 
 ### Jeep
 
-It's... more complicated.
+It's... more complicated. Currently attempting to extract matching inventory from the manufacturer website (which makes for very exact results), and then traversing through dealership search results to match cars by VIN so we can get the real price.
 
