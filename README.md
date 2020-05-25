@@ -25,9 +25,9 @@ Fetching is done via a cache which expires on the hour. Be sure to clear the `ca
 
 ### Subaru
 
-If you don't want to look for Outback Onyx editions, simply perform the search at any dealership, look at the URL query string, and put that into `fetchCars` in [subaru.js](subaru.js).
+If you don't want to look for Outback Onyx editions, simply perform the search at any dealership, look at the URL query string, and put that into `getQueryByDealer` in [dealer-common.js](dealer-common.js).
 
 ### Jeep
 
-It's... more complicated. Currently attempting to extract matching inventory from the manufacturer website (which makes for very exact results), and then traversing through dealership search results to match cars by VIN so we can get the real price.
+It's... more complicated. Currently attempting to extract matching inventory from the manufacturer website (which makes for very exact results), and then traversing through dealership search results to match cars by VIN so we can get the real price. But Jeep dealerships are not guaranteed to use the same front end, so special fetching/parsing will be required on a case-by-case basis.
 
