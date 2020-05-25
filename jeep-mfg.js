@@ -1,7 +1,7 @@
 const fetcher = require('./fetch-with-cache.js');
 const moment = require('moment');
 const fs = require('fs');
-const { fetchFromDealer } = require('./dealer-common.js');
+const { fetchFromDealer, getQueryByDealer } = require('./dealer-common.js');
  
 function formatCurrency(numberString) {
     let result = ''
@@ -212,9 +212,7 @@ async function getCarsFromDealers() {
     const dealerUrls = [... new Set(factoryCars.map(a => a.dealer.website))];
     console.log(`Factory query resulted in ${factoryCars.length} cars from ${dealerUrls.length} dealers.`);
 
-    const query = 'new-inventory/index.htm?search=&model=Wrangler';
-
-    const carsByDealer = await Promise.all(dealerUrls.map(url => fetchFromDealer(url, 'jeep', query)));
+    const carsByDealer = await Promise.all(dealerUrls.map(url => fetchFromDealer(url, 'jeep')));
     const allCars = [];
     carsByDealer.map(cars => allCars.push(...cars)); // these are all the cars in dealerships that have at least one car we want. 
 
@@ -223,6 +221,7 @@ async function getCarsFromDealers() {
     for (const factoryCar of factoryCars) {
         const matches = allCars.filter(a => a.vin.trim() === factoryCar.vin.trim());
         if (!matches || matches.length === 0) {
+            const query = getQueryByDealer(factoryCar.dealer.website, 'jeep');
             console.error(`Could not find car ${factoryCar.vin} at ${factoryCar.dealer.website}${query}`)
             unmatchedCars.push({vin: factoryCar.vin, url:`${factoryCar.dealer.website}${query}`});
             continue;

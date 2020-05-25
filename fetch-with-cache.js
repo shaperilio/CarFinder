@@ -2,6 +2,7 @@ const fetch = require('node-fetch');
 const moment = require('moment');
 const md5 = require('md5');
 const fs = require('fs');
+const childProcess = require('child_process');
 
 function makeCacheFilename(url) {
     const key = `${url}${moment().format('YYYY-MM-DD_HH')}`
@@ -12,8 +13,11 @@ async function getHtml(url) {
     const filename = `${makeCacheFilename(url)}.html`;
     if (fs.existsSync(filename)) {
         // console.debug(`Cache hit ${filename} => ${url}`);
-        return fs.readFileSync(filename);
+        return String(fs.readFileSync(filename));
     }
+
+    // childProcess.execSync(`curl -L "${url}" -o ${filename}`);
+    // return String(fs.readFileSync(filename));
 
     const response = await fetch(url);
     const data = await response.text();

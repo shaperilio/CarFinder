@@ -2,10 +2,6 @@ const fs = require('fs');
 const moment = require('moment');
 const { fetchFromDealer } = require('./dealer-common.js');
 
-async function fetchCars(dealer) {
-    const query = 'new-inventory/index.htm?search=&model=Outback&trim=Onyx+Edition+XT';
-    return await fetchFromDealer(dealer, 'subaru', query);
-}
 
 async function getCarsFromDealers() {
     const dealers = [
@@ -27,7 +23,7 @@ async function getCarsFromDealers() {
         'https://www.superiorsubaruofhouston.com/'
     ]
 
-    const carsByDealer = await Promise.all(dealers.map(dealer => fetchCars(dealer)));
+    const carsByDealer = await Promise.all(dealers.map(dealer => fetchFromDealer(dealer, 'subaru')));
     const allCars = [];
     carsByDealer.map(cars => allCars.push(...cars));
 

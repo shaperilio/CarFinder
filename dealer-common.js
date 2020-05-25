@@ -1,10 +1,25 @@
 const fetcher = require('./fetch-with-cache.js');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const childProcess = require('child_process');
 
 const windowStickerUrl =  'https://window-sticker-services.pse.dealer.com/windowsticker/MAKE?vin=VIN'
 
+function getQueryByDealer(dealerUrl, make) {
+    if (make === 'subaru') {
+        return 'new-inventory/index.htm?search=&model=Outback&trim=Onyx+Edition+XT';
+    }
+
+    if (dealerUrl.includes('fremontcdjr')) {
+        return 'new-vehicles/#action=im_ajax_call&perform=get_results&model=Wrangler&page=1';
+    }
+
+    return 'new-inventory/index.htm?search=&model=Wrangler';
+}
+
 async function fetchFromDealer(dealerUrl, make, query) {
+    if (!query)
+        query = getQueryByDealer(dealerUrl, make);
     const url = `${dealerUrl}${query}`;
     const body = await fetcher.getHtml(url);
     let result = await parseResults(body, dealerUrl, make, url);
@@ -47,9 +62,13 @@ async function parseResults(body, dealer, make, pageUrl) {
 
     if (carList.length === 0) {
         console.error(`No cars found at ${pageUrl}`);
-        // const dealerForFile = dealer.match(/https?\:\/\/(www\.)?(?<dealer>\w*)\./).groups.dealer;
-        // fs.writeFileSync(`crap/page_${dealerForFile}.html`, body);
-        // console.error('Page saved for inspection');
+        const dealerForFile = dealer.match(/https?\:\/\/(www\.)?(?<dealer>\w*)\./).groups.dealer;
+        fs.writeFileSync(`crap/page_${dealerForFile}.html`, body);
+        childProcess.exec(`curl -L "${pageUrl}" -o crap/curl_${dealerForFile}.html`);
+        console.error('Page saved for inspection');
+        if (content('*').text().toUpperCase().includes('CAPTCHA')) {
+            console.error(`Captcha request at ${pageUrl}`);
+        }
     }
     let dealerName = content('.org').text().trim();
     if (!dealerName) {
@@ -127,4 +146,4 @@ async function parseResults(body, dealer, make, pageUrl) {
     return { cars, reportedCars };
 }
 
-module.exports = { fetchFromDealer }
+module.exports = { fetchFromDealer, getQueryByDealer }
