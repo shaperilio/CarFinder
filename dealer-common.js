@@ -11,6 +11,12 @@ function getQueryByDealer(dealerUrl, make) {
     }
 
     if (dealerUrl.includes('fremontcdjr')) {
+        // This still does not give us what the browser gets via node-fetch,
+        // but it seems to work via puppeteer.
+
+        // From what I can tell, the request is always to 'new-vehicles/' and all the 
+        // filtering by model and pagination seems to happen in-browser (AJAX?)
+        // so node-fetch / curl will never see it.
         return 'new-vehicles/#action=im_ajax_call&perform=get_results&model=Wrangler&page=1';
     }
 
