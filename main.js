@@ -24,7 +24,6 @@ function makeDealerTable(allCars) {
         <a href="${car.windowSticker}" target="_blank">${car.vin}</a><br />
         ${car.engine}</td>
     </tr>`
-        console.log(`${car.finalPrice} - ${car.name} (${car.url}).`);
     }
 
     html += `</table>`;
@@ -55,7 +54,6 @@ async function makeJeepMfgTable() {
     <td><a href="${googleMapsLink}" target="_blank">${car.dealer.name} - ${car.dealer.cityState}</a><br />
         <a href="${car.windowSticker}" target="_blank">${car.vin}</a></td>
     </tr>`
-        console.log(`${car.finalPrice} - ${car.model} (${car.url}).`);
     }
 
     html += `</table>`;

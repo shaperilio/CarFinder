@@ -113,10 +113,6 @@ async function getCars(filters, zipCode, dealers, radiusMiles) {
     for (const car of cars) {
         if (filters && !isCarValid(car, filters)) continue;
 
-        if (car.incentives) {
-            console.log(car.incentives);
-        }
-
         const engine = car.engineDesc;
         const tranny = car.transmissionDesc;
         const model = car.vehicleDesc;
@@ -211,8 +207,7 @@ async function getCarsFromDealers() {
     // Get cars by filtering the factory inventory search, then looking for them in the dealerships'
     // website and matching by VIN.
 
-    const dealerCars = [];
-    const factoryCars = await getCarsFromFactory();
+    const factoryCars = await getCarsFromFactory(); // contains the cars we actually want.
 
     const dealerUrls = [... new Set(factoryCars.map(a => a.dealer.website))];
     console.log(`Factory query resulted in ${factoryCars.length} cars from ${dealerUrls.length} dealers.`);
@@ -221,23 +216,54 @@ async function getCarsFromDealers() {
 
     const carsByDealer = await Promise.all(dealerUrls.map(url => fetchFromDealer(url, 'jeep', query)));
     const allCars = [];
-    carsByDealer.map(cars => allCars.push(...cars));
+    carsByDealer.map(cars => allCars.push(...cars)); // these are all the cars in dealerships that have at least one car we want. 
 
+    const dealerCars = [];
+    const unmatchedCars = []
     for (const factoryCar of factoryCars) {
-        let found = false;
-        const dealerUrl = factoryCar.dealer.website;
-        for (const car of allCars) {
-            if (car.vin.trim() === factoryCar.vin.trim()) {
-                dealerCars.push(car);
-                found = true;
-                break;
-            }
+        const matches = allCars.filter(a => a.vin.trim() === factoryCar.vin.trim());
+        if (!matches || matches.length === 0) {
+            console.error(`Could not find car ${factoryCar.vin} at ${factoryCar.dealer.website}${query}`)
+            unmatchedCars.push({vin: factoryCar.vin, url:`${factoryCar.dealer.website}${query}`});
+            continue;
         }
-        if (!found) {
-            console.error(`Could not find car ${factoryCar.vin} at ${dealerUrl}${query}`)
+        if (matches.length > 1) {
+            console.error(`Found ${matches.length} cars with ${factoryCar.vin}!`);
         }
+        const car = matches[0];
+        dealerCars.push(car)
     }
 
+    dealerCars.sort(function (a, b) {
+        if (a.finalPrice < b.finalPrice) return -1;
+        if (a.finalPrice > b.finalPrice) return 1;
+        return 0;
+    });
+
+    const archive = `archive/jeep_${moment().format('YYYY-MM-DD_HH-mm-ss')}.json`;
+    fs.writeFileSync(archive, JSON.stringify(dealerCars, null, 2), err => {
+        console.error(err);
+    });
+    
+    fs.writeFileSync('jeep.json', JSON.stringify(dealerCars, null, 2), err => {
+        console.error(err);
+    });
+
+    unmatchedCars.sort(function (a, b) {
+        if (a.url < b.url) return -1;
+        if (a.url > b.url) return 1;
+        return 0;
+    });
+
+    fs.writeFileSync(archive.replace('jeep_', 'unmatched-jeep_'), JSON.stringify(unmatchedCars, null, 2), err => {
+        console.error(err);
+    });
+    
+    fs.writeFileSync('unmatched-jeep.json', JSON.stringify(unmatchedCars, null, 2), err => {
+        console.error(err);
+    });
+
+    console.log(`Found ${dealerCars.length} dealer cars of ${factoryCars.length} factory cars.`);
     return dealerCars;
 }
 

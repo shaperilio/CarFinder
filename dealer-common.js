@@ -9,13 +9,13 @@ async function fetchFromDealer(dealerUrl, make, query) {
     const body = await fetcher.getHtml(url);
     let result = await parseResults(body, dealerUrl, make, url);
     const cars = result.cars;
-    console.log(`${cars.length} car(s) found at ${url}`);
     while (result.reportedCars > cars.length) {
         const paginatedUrl = url.replace('search=', `start=${cars.length}`)
         const body = await fetcher.getHtml(paginatedUrl);
         result = await parseResults(body, dealerUrl, make, paginatedUrl);
         cars.push(...result.cars);
     }
+    console.log(`${cars.length} car(s) parsed from ${url}`);
     return cars;
 }
 
@@ -43,8 +43,14 @@ async function parseResults(body, dealer, make, pageUrl) {
     fs.writeFileSync('page.html', body)
     const numCars = content('.vehicle-count').last().text();
     const carList = content('.hproduct', '.bd');
-    console.log(`numCars = ${numCars}; carList.length = ${carList.length} at ${pageUrl}`);
+    // console.log(`numCars = ${numCars}; carList.length = ${carList.length} at ${pageUrl}`);
 
+    if (carList.length === 0) {
+        console.error(`No cars found at ${pageUrl}`);
+        // const dealerForFile = dealer.match(/https?\:\/\/(www\.)?(?<dealer>\w*)\./).groups.dealer;
+        // fs.writeFileSync(`crap/page_${dealerForFile}.html`, body);
+        // console.error('Page saved for inspection');
+    }
     let dealerName = content('.org').text().trim();
     if (!dealerName) {
         dealerName = 'Unkown dealer name';

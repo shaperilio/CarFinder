@@ -11,6 +11,7 @@ function makeCacheFilename(url) {
 async function getHtml(url) {
     const filename = `${makeCacheFilename(url)}.html`;
     if (fs.existsSync(filename)) {
+        // console.debug(`Cache hit ${filename} => ${url}`);
         return fs.readFileSync(filename);
     }
 
@@ -27,6 +28,7 @@ async function getHtml(url) {
 async function getJson(url) {
     const filename = `${makeCacheFilename(url)}.json`;
     if (fs.existsSync(filename)) {
+        // console.debug(`Cache hit ${filename} => ${url}`);
         return JSON.parse(fs.readFileSync(filename));
     }
 
