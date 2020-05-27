@@ -22,7 +22,9 @@ function makeDealerTable(allCars) {
     <td><a href="${car.url}" target="_blank">${car.finalPrice}</a></td>
     <td><a href="${googleMapsLink}" target="_blank">${car.dealerName} - ${car.dealerCityState}</a><br />
         <a href="${car.windowSticker}" target="_blank">${car.vin}</a><br />
-        ${car.engine}</td>
+        ${car.stockNo}<br />
+        ${car.color}
+        </td>
     </tr>`
     }
 
@@ -64,22 +66,24 @@ async function makeJeepMfgTable() {
 async function makePage() {
     let html = `
     <body>
-    <p>Updated ${moment().format('YYYY-MM-DD HH:mm:ss')}</p>
-    <table><tr><td valign="top">`;
+    <p>Updated ${moment().format('YYYY-MM-DD HH:mm:ss')}</p>`
+ 
+    // html += `<table><tr><td valign="top">`;
     
     let cars;
     cars = await subaru.getCarsFromDealers();
     html += makeDealerTable(cars);
 
-    html += `</td>
-    <td valign="top">`;
+    // html += `</td>
+    // <td valign="top">`;
     
-    cars = await jeepMfg.getCarsFromDealers();
-    html += makeDealerTable(cars);
+    // cars = await jeepMfg.getCarsFromDealers();
+    // html += makeDealerTable(cars);
     
-    html += `
-    </td></tr></table>
-    </body>`;
+    // html += `
+    // </td></tr></table>`;
+    
+    html += `</body>`;
     fs.writeFileSync('index.html', html, err => {
         console.error(err);
     });

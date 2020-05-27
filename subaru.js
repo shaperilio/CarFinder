@@ -17,19 +17,31 @@ async function getCarsFromDealers() {
         'https://www.carlsensubaru.com/',
         'https://www.subaruofoakland.com/',
         'https://www.albanysubaru.com/',
-        'https://www.gillmansubaru.com/',
-        'https://www.westhoustonsubaru.com/', 
-        'https://www.gillmansubarunorth.com/',
-        'https://www.superiorsubaruofhouston.com/'
+        'https://www.marinsubaru.net/',
+        'https://www.stevenscreeksubaru.com/',
+        'https://www.capitolsubarusj.com/',
+        'https://www.santacruzsubaru.com/',
+        'https://www.modestosubaru.com/',
+        'https://www.subaruofsonora.com/'
+        // 'https://www.gillmansubaru.com/',
+        // 'https://www.westhoustonsubaru.com/', 
+        // 'https://www.gillmansubarunorth.com/',
+        // 'https://www.superiorsubaruofhouston.com/'
     ]
 
     const carsByDealer = await Promise.all(dealers.map(dealer => fetchFromDealer(dealer, 'subaru')));
     const allCars = [];
     carsByDealer.map(cars => allCars.push(...cars));
 
+    // allCars.sort(function (a, b) {
+    //     if (a.finalPrice < b.finalPrice) return -1;
+    //     if (a.finalPrice > b.finalPrice) return 1;
+    //     return 0;
+    // });
+
     allCars.sort(function (a, b) {
-        if (a.finalPrice < b.finalPrice) return -1;
-        if (a.finalPrice > b.finalPrice) return 1;
+        if (a.color < b.color) return -1;
+        if (a.color > b.color) return 1;
         return 0;
     });
 

@@ -117,6 +117,8 @@ async function parseResults(body, dealer, make, pageUrl) {
                 }
             }
             const engine = content('.description dt:contains("Engine:")', car).next().text().replace(',', '');
+            const color = content('.description dt:contains("Exterior Color:")', car).next().text().replace(',', '');
+            const stockNo = content('.description dt:contains("Stock #:")', car).next().text().replace(',', '');
             const theCar = {
                 pageUrl,
                 dealerName,
@@ -126,7 +128,9 @@ async function parseResults(body, dealer, make, pageUrl) {
                 url,
                 imgUrl,
                 engine,
+                color,
                 vin,
+                stockNo,
                 windowSticker: windowStickerUrl.replace('MAKE', make).replace('VIN', vin),
                 msrp,
                 internetPrice,
